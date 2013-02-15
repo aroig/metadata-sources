@@ -1,5 +1,5 @@
 ================
-calibre-metadata
+metadata-sources
 ================
 A collection of metadata source plugins for calibre. Some are based on calibre's
 own plugins, others are new.
