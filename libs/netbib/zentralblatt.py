@@ -49,8 +49,8 @@ class Zentralblatt(NetbibBase):
         self.browser = browser
         self.sleep_time = 0.2
 
-        self.url_bibtex = "http://www.zentralblatt-math.org/zmath/en/search/zmath.bibtex"
-        self.url_xml = "http://www.zentralblatt-math.org/zmath/en/search/zmath.xml"
+        self.url_bibtex = "https://zbmath.org/bibtex"
+        self.url_query = "https://zbmath.org"
         self.ans = []
 
         self.lang_map = {'English': 'eng',
@@ -61,8 +61,7 @@ class Zentralblatt(NetbibBase):
 
 
     def run(self):
-        params = self.format_query(self.query, type='bibtex')
-#    params = self.format_query(self.query, type='xml')
+        params = self.format_query(self.query)
         ans = self.query_zentralblatt(params)
 
         # If no luck, relax the query
@@ -77,13 +76,12 @@ class Zentralblatt(NetbibBase):
             self.ans = []
 
 
+    def query_zentralblatt_id(self, bibid):
+        query = '%s/%s.bib' % (self.url_bibtex, bibid)
+        raw = self.browser.open(query, timeout=self.timeout).read()
+        rawdata=raw.decode('utf-8', errors='replace').strip()
 
-    def query_zentralblatt(self, params):
-        query = '%s?%s' % (self.url_bibtex, urlencode(params))
-        raw_bibtex = self.browser.open(query, timeout=self.timeout).read()
-        if sys.version_info[0] >= 3: raw_bibtex = raw_bibtex.decode('utf-8')
-        raw_bibtex = raw_bibtex.strip()
-        entries = parse_bibtex(raw_bibtex)
+        entries = parse_bibtex(rawdata)
 
         ans = []
         for bib in entries:
@@ -140,7 +138,21 @@ class Zentralblatt(NetbibBase):
 
 
 
-    def format_query(self, d, type):
+    def query_zentralblatt(self, params):
+        query = '%s?%s' % (self.url_query, urlencode(params))
+        raw = self.browser.open(query, timeout=self.timeout).read()
+        rawdata=raw.decode('utf-8', errors='replace').strip()
+
+        ans = []
+        for bibid in re.findall('"bibtex/(.*).bib"', rawdata):
+            for ans2 in self.query_zentralblatt_id(bibid):
+                ans.append(ans2)
+
+        return ans
+
+
+
+    def format_query(self, d):
         """Formats a query suitable to send to the arxiv API"""
         for k in d.keys():
             if not k in self.search_fields:
@@ -162,7 +174,7 @@ class Zentralblatt(NetbibBase):
         else:
             raise ZentralblattError("Error in Zentralblatt. Insuficient metadata to construct a query")
 
-        params = {'q': ' '.join(items), 'format': 'complete', 'type': type}
+        params = {'q': ' '.join(items)}
         return params
 
 
