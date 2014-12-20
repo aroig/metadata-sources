@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     tests_list = [
         ({'title': "Superconnections, Thom classes", 'authors':['Mathai', 'Daniel Quillen']},
-         [title_test("Superconnections, Thom classes, and Equivariant Differential Forms"),
+         [title_test("Superconnections, Thom classes, and equivariant differential forms"),
           authors_test(['Varghese Mathai', 'Daniel Quillen'])]),
         ({'title': "sur le nombre des points rationnels", 'authors':['serre']},
          [title_test("Sur le nombre des points rationnels d'une courbe algébrique sur un corps fini"),

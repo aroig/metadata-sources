@@ -75,6 +75,7 @@ class NetbibBase(threading.Thread):
 
 
     def format_author(self, au):
+        au = re.sub("{([^{}]*?)}", "\g<1>", au, re.DOTALL)   # Removes more {}
         L = self.format_text(au).split(',')
         if len(L) != 2: return au
         else:           return L[1].strip() + " " + L[0].strip()

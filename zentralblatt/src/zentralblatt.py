@@ -34,12 +34,12 @@ class Zentralblatt(MySource):
     description             = _('Downloads metadata from Zentralblatt')
     author                  = 'Abdó Roig-Maranges'
     supported_platforms     = ['windows', 'osx', 'linux']
-    version                 = (1,2,0)
+    version                 = (1,3,0)
     minimum_calibre_version = (0,8,0)
 
     capabilities = frozenset(['identify'])
     touched_fields = frozenset(['title', 'authors', 'identifiers', 'languages',
-          'series', 'series_index', 'comments', 'pubdate'])
+          'series', 'series_index', 'pubdate'])
 
     # Plugin Options
     has_html_comments = True
@@ -57,7 +57,7 @@ class Zentralblatt(MySource):
         """Produces an url for the zbl identifier. The others are known."""
         if 'zbl' in identifiers.keys():
             zbl = identifiers['zbl']
-            url = "http://www.zentralblatt-math.org/zmath/en/search/?q=an:%s" % zbl
+            url = "https://zbmath.org?q=an:%s" % zbl
             return ("zbl", zbl, url)
         else:
             return None
