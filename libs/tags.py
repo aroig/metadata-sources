@@ -17,8 +17,11 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
-arxiv_tags ={
+
+
+_arxiv_tags ={
   'astro-ph.CO':          ['physics', 'cosmology'],
   'astro-ph.EP':          ['physics', 'astrophysics'],
   'astro-ph.GA':          ['physics', 'astrophysics'],
@@ -108,3 +111,44 @@ arxiv_tags ={
   # TODO: Quantitative Finance
   # TODO: Statistics
 }
+
+def arxiv_tags(subj):
+    return _arxiv_tags.get(subj, [])
+
+
+
+_msc_tags = {
+    '03':                  ['logic'],
+    '05':                  ['combinatorics'],
+    '06':                  ['algebra'],
+    '08':                  ['algebra'],
+    '11':                  ['number theory'],
+    '13':                  ['commutative algebra'],
+    '14':                  ['algebraic geometry'],
+    '16':                  ['algebra'],
+    '19':                  ['K-theory'],
+
+    '53':                  ['differential geometry'],
+    '54':                  ['topology'],
+    '55':                  ['topology'],
+    '57':                  ['topology'],
+    '58':                  ['geometric analysis'],
+    '60':                  ['probability']
+}
+
+
+def msc_tags(subj):
+
+    tags = set()
+    m = re.match('([0-9]+)([A-Z]+)([0-9]+)', subj)
+
+    if m:
+        level1 = '%02d'   % int(m.group(1))
+        level2 = '%s%s'   % (level1, m.group(2))
+        level3 = '%s%02d' % (level2, int(m.group(3)))
+
+        tags.update(_msc_tags.get(level1, []))
+        tags.update(_msc_tags.get(level2, []))
+        tags.update(_msc_tags.get(level3, []))
+
+    return tags

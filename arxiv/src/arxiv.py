@@ -21,7 +21,7 @@ import time
 import re
 
 from .mysource import MySource
-from .netbib.arxiv import Arxiv
+from .netbib.arxiv import Arxiv as ArxivWorker
 from .tags import arxiv_tags
 
 from calibre.ebooks.metadata.sources.base import Option
@@ -54,9 +54,19 @@ class Arxiv(MySource):
     idkey = 'arxiv'
     maxresults = 10
     sleep_time = 0.5
-    worker_class = Arxiv
+    worker_class = ArxivWorker
     abstract_title = "Abstract:"
 
+
+    def get_book_url(self, identifiers):
+        """Produces an url for the arxiv identifier."""
+
+        if 'arxiv' in identifiers.keys():
+            arxiv = identifiers['arxiv']
+            url = "http://arxiv.org/abs/%s" % arxiv
+            return ("arxiv", arxiv, url)
+        else:
+            return None
 
 
     def data2mi(self, item):
@@ -68,7 +78,9 @@ class Arxiv(MySource):
 
         if 'subject' in item.keys():
             tags = set([])
-            for s in item['subject']:    tags = tags.union(arxiv_tags.get(s, []))
+            for s in item['subject']:
+                tags.update(arxiv_tags(s))
+
             mi.set('tags', tags)
 
         return mi

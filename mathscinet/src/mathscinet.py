@@ -23,7 +23,7 @@ import time
 import re
 
 from .mysource import MySource
-from .netbib import Mathscinet
+from .netbib import Mathscinet as MathscinetWorker
 
 from calibre.ebooks.metadata.sources.base import Option
 from calibre.ebooks.metadata.book.base import Metadata
@@ -49,7 +49,7 @@ class Mathscinet(MySource):
     idkey = 'mr'
     maxresults = 5
     sleep_time = 0.5
-    worker_class = Mathscinet
+    worker_class = MathscinetWorker
     abstract_title = "Mathscinet Review:"
 
 

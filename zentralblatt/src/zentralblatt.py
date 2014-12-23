@@ -23,7 +23,8 @@ import time
 import re
 
 from .mysource import MySource
-from .netbib import Zentralblatt
+from .tags import msc_tags
+from .netbib import Zentralblatt as ZentralblattWorker
 
 from calibre.ebooks.metadata.sources.base import Option
 from calibre.ebooks.metadata.book.base import Metadata
@@ -49,18 +50,30 @@ class Zentralblatt(MySource):
     idkey = 'zbl'
     maxresults = 5
     sleep_time = 0.5
-    worker_class = Zentralblatt
+    worker_class = ZentralblattWorker
     abstract_title = "Zentralblatt Review:"
 
 
     def get_book_url(self, identifiers):
-        """Produces an url for the zbl identifier. The others are known."""
+        """Produces an url for the zbl identifier"""
         if 'zbl' in identifiers.keys():
             zbl = identifiers['zbl']
             url = "https://zbmath.org?q=an:%s" % zbl
             return ("zbl", zbl, url)
         else:
             return None
+
+
+    def data2mi(self, item):
+        mi = super(Zentralblatt, self).data2mi(item)
+
+        if 'subject' in item.keys():
+            tags = set([])
+            for s in item['subject']:
+                tags.update(msc_tags(s))
+            mi.set('tags', tags)
+
+        return mi
 
 
 
