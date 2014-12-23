@@ -77,7 +77,7 @@ class Arxiv(NetbibBase):
             d['authors'] = [self.format_text(e.text) for e in result.findall(at+'author/'+at+'name')]
             d['subject'] = [self.format_text(e.get('term')) for e in result.findall(at+'category')]
             d['updated'] = self.format_text(result.find(at+'updated').text)
-            d['abstract'] = self.format_text(result.find(at+'summary').text)
+            d['abstract'] = '<p>%s</p>' % self.format_text(result.find(at+'summary').text)
             d['updated'] = self.format_text(result.find(at+'updated').text)
             d['url'] = self.format_url(result.find(at+'link').get('href'))
 
