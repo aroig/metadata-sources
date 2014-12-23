@@ -30,26 +30,32 @@ else:
 from .zentralblatt import Zentralblatt
 from .mathscinet import Mathscinet
 from .arxiv import Arxiv
+# from .inspire import Inspire
+
+
+def test_source(src, query):
+    ans = src.query_and_wait(query)
+    for d in ans:
+        print('%s - %s' % (', '.join(d['authors']), d['title']))
+    print("")
 
 
 def test():
     browser = build_opener()
 
     print("Arxiv")
-    arxiv = Arxiv(browser)
-    ans = arxiv.query_and_wait({'authors': ['Kontsevich']})
-    for d in ans: print('%s - %s' % (', '.join(d['authors']), d['title']))
-    print("")
-
+    test_source(src=Arxiv(browser), query={'authors': ['Kontsevich']})
+    test_source(src=Arxiv(browser), query={'arxiv': "1412.7127v1"})
 
     print("Zentralblatt")
-    zbl = Zentralblatt(browser)
-    ans = zbl.query_and_wait({'authors': ['Kontsevich']})
-    for d in ans: print('%s - %s' % (', '.join(d['authors']), d['title']))
-    print("")
+    test_source(src = Zentralblatt(browser), query={'authors': ['Kontsevich']})
 
     print("Mathscinet")
-    mr = Mathscinet(browser)
-    ans = mr.query_and_wait({'authors': ['Kontsevich']})
-    for d in ans: print('%s - %s' % (', '.join(d['authors']), d['title']))
-    print("")
+    test_source(src = Mathscinet(browser), query={'authors': ['Kontsevich']})
+
+    # print("Inspire")
+    # test_source(src = Inspire(browser), query={'authors': ['Kontsevich']})
+
+
+if __name__ == '__main__':
+    test()

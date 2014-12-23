@@ -42,7 +42,7 @@ class Zentralblatt(NetbibBase):
     def __init__(self, browser, timeout=30):
         super(Zentralblatt, self).__init__()
 
-        self.search_fields = ['title', 'authors', 'zbl']
+        self.search_fields = ['title', 'authors', 'id']
         self.idkey = 'zbl'
 
         self.timeout = timeout
@@ -53,118 +53,79 @@ class Zentralblatt(NetbibBase):
         self.url_query = "https://zbmath.org"
         self.ans = []
 
-        self.lang_map = {'English': 'eng',
-                         'German': 'deu',
-                         'French': 'fra',
-                         'Spanish': 'spa'}
 
 
+    # Internals
+    # ------------------------------ #
 
-    def run(self):
-        params = self.format_query(self.query)
-        ans = self.query_zentralblatt(params)
+    def entry_from_bibtex(self, bib):
+        d = super(Zentralblatt, self).entry_from_bibtex(bib)
 
-        # If no luck, relax the query
-        if len(ans) == 0:
-            # TODO
-            pass
+        if 'zbl' in bib.keys():
+            d['id'] = self.format_id(bib['zbl'])
 
-        if len(ans) > 0:
-            ans = self.sort_and_trim(ans)
-            self.ans = ans
-        else:
-            self.ans = []
+        return d
 
 
-    def query_zentralblatt_id(self, bibid):
+    def get_item(self, bibid):
         query = '%s/%s.bib' % (self.url_bibtex, bibid)
         raw = self.browser.open(query, timeout=self.timeout).read()
         rawdata=raw.decode('utf-8', errors='replace').strip()
 
-        entries = parse_bibtex(rawdata)
+        ans = parse_bibtex(rawdata)
 
-        ans = []
-        for bib in entries:
-            d = {}
-            if 'bibtexkey' in bib.keys():
-                d['zbl'] = self.format_text(bib['bibtexkey'])
+        if len(ans) > 0:
+            return self.entry_from_bibtex(ans[0])
 
-            if 'bibtextype' in bib.keys():
-                d['type'] = bib['bibtextype'].strip().lower()
-
-            if 'title' in bib.keys():
-                d['title'] = self.format_title(bib['title'])
-
-            if 'author' in bib.keys():
-                d['authors'] = [self.format_author(e)
-                                for e in bib['author'].split('and')]
-            elif 'editor' in bib.keys():
-                d['authors'] = [self.format_author(e)
-                                for e in bib['editor'].split('and')]
-
-            if 'language' in bib.keys():
-                lang = self.language_code(bib['language'].strip())
-                if lang:
-                    d['language'] = lang
-
-            if 'doi' in bib.keys():
-                d['doi'] = bib['doi'].strip()
-
-            if 'isbn' in bib.keys():
-                d['isbn'] = bib['isbn'].strip()
-
-            if 'publisher' in bib.keys():
-                d['publisher'] = self.format_text(bib['publisher'])
-
-            if 'journal' in bib.keys():
-                d['journal'] = self.format_text(bib['journal'])
-
-            if 'volume' in bib.keys():
-                d['volume'] = bib['volume'].strip()
-
-            if 'number' in bib.keys():
-                d['number'] = bib['number'].strip()
-
-            if 'year' in bib.keys():
-                year = self.format_year(bib['year'].strip())
-                if year: d['year'] = year
-
-            if 'abstract' in bib.keys():
-                d['abstract'] = latex_decode(bib['abstract'].strip())
-
-            ans.append(d)
-
-        return ans
+        return None
 
 
+    def get_abstract(self, bibid):
+        """Returns the answer to a query"""
+        params = format_query({self.idkey: bibid})
+        query = '%s?%s' % (self.url_query, urlencode(params))
+        rawdata=raw.decode('utf-8', errors='replace').strip()
+        m = re.search('<div class="abstract">(.*?)</div>', rawdata, re.DOTALL)
+        if m:
+            abstract = m.group(1).strip()
+            L = re.findall("(.*?)\n\s*?\n", abstract + "\n\n", re.DOTALL | re.MULTILINE)
+            Lpar = [self.format_paragraph(par.strip()) for par in L if len(par.strip()) > 0]
+            abstract = ('\n'.join(Lpar)).strip()
 
-    def query_zentralblatt(self, params):
+            if len(abstract) > 0:
+                return abstract
+
+        return None
+
+
+    def get_matches(self, params):
         query = '%s?%s' % (self.url_query, urlencode(params))
         raw = self.browser.open(query, timeout=self.timeout).read()
         rawdata=raw.decode('utf-8', errors='replace').strip()
 
         ans = []
+        # note, we are not catching the id's, just some wat to retrieve the bibtex!
         for bibid in re.findall('"bibtex/(.*).bib"', rawdata):
-            for ans2 in self.query_zentralblatt_id(bibid):
-                ans.append(ans2)
+            item = self.get_item(bibid)
+            if item: ans.append(item)
 
         return ans
 
 
-
-    def format_query(self, d):
-        """Formats a query suitable to send to the arxiv API"""
+    def format_query(self, d, lax=False):
+        """Formats a query suitable to send to Zentralblatt API"""
         for k in d.keys():
             if not k in self.search_fields:
                 raise ZentralblattError("Error in Zentralblatt. Don't understand keys")
 
         items = []
-        if 'zbl' in d.keys():
-            items.append('an:%s' % d['zbl'])
+        if 'id' in d.keys():
+            items.append('an:%s' % d['id'])
 
         elif 'authors' in d.keys() or 'title' in d.keys():
             if 'title' in d.keys():
-                items.append('ti:' + ('"%s"' % d['title']))
+                if lax: items.append('any:' + ('"%s"' % d['title']))
+                else:   items.append('ti:' + ('"%s"' % d['title']))
 
             if 'authors' in d.keys():
                 words = [surname(a) for a in d['authors']]
@@ -176,8 +137,3 @@ class Zentralblatt(NetbibBase):
 
         params = {'q': ' '.join(items)}
         return params
-
-
-
-    def language_code(self, lang):
-        return self.lang_map.get(lang, None)

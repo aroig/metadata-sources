@@ -58,7 +58,7 @@ class MySource(Source):
         idval = identifiers.get(self.idkey, None)
         isbn = identifiers.get('isbn', None)
 
-        if idval: d[self.idkey] = idval
+        if idval: d['id'] = idval
         if isbn: d['isbn'] = isbn
         if title: d['title'] = title
         if authors: d['authors'] = authors
@@ -110,7 +110,7 @@ class MySource(Source):
         mi.authors = item.get('authors', [])
         mi.publisher = item.get('publisher', None)
 
-        if self.idkey in item.keys(): mi.set_identifier(self.idkey, item[self.idkey])
+        if 'id' in item.keys(): mi.set_identifier(self.idkey, item['id'])
         if 'doi' in item.keys(): mi.set_identifier('doi', item['doi'])
         if 'isbn' in item.keys(): mi.set_identifier('isbn', item['isbn'])
 

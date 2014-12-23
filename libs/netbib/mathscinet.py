@@ -43,7 +43,7 @@ class Mathscinet(NetbibBase):
     def __init__(self, browser, timeout=30):
         super(Mathscinet, self).__init__()
 
-        self.search_fields = ['title', 'authors', 'mr']
+        self.search_fields = ['title', 'authors', 'id']
         self.idkey = 'mr'
 
         self.timeout = timeout
@@ -54,35 +54,27 @@ class Mathscinet(NetbibBase):
         self.ans = []
 
 
+    # Internals
+    # ------------------------------ #
 
-    def run(self):
-        # First run with authors as authors.
-        params = self.format_query(self.query, title_all=False)
-        ans = self.query_mathscinet(params)
+    def entry_from_bibtex(self, bib):
+        d = super(Mathscinet, self).entry_from_bibtex(bib)
 
-        # If no luck, try something else. Split the title ?
-        if len(ans) == 0:
-            time.sleep(self.sleep_time)
-            params = self.format_query(self.query, title_all=True)
-            ans = self.query_mathscinet(params)
+        if 'bibtexkey' in bib.keys():
+            d['id'] = self.format_id(bib['bibtexkey'])
 
-        if len(ans) > 0:
-            ans = self.sort_and_trim(ans)
+        # Series may be in a note.
+        if not 'series' in d.keys() and bib['bibtextype'] == 'book' and 'note' in bib.keys():
+            series, series_idx = self.format_series_from_note(bib['note'])
+            if series:
+                d['series'] = series
+                if series_idx:
+                    d['series_index'] = series_idx
 
-            # Download abstracts.
-            for d in ans:
-                time.sleep(self.sleep_time)
-                abstract = self.get_abstract(d['mr'])
-                if abstract:
-                    d['abstract'] = abstract
-
-            self.ans = ans
-        else:
-            self.ans = []
+        return d
 
 
-
-    def query_mathscinet(self, params):
+    def get_matches(self, params):
         query_list = '%s?%s' % (self.url, urlencode(params))
         raw = self.browser.open(query_list, timeout=self.timeout).read()
         rawdata = raw.decode('utf-8', errors='replace').strip()
@@ -91,76 +83,39 @@ class Mathscinet(NetbibBase):
         if m: rawdata = m.group(1)
         else: return []
 
-        bibentries = re.findall('<pre>(.*?)</pre>', rawdata, re.DOTALL)
-        entries = parse_bibtex('\n'.join(bibentries))
-
         ans = []
-        for bib in entries:
-            d = {}
-            if 'bibtexkey' in bib.keys():
-                d['mr'] = self.format_MR(bib['bibtexkey'])
-
-            if 'bibtextype' in bib.keys():
-                d['type'] = bib['bibtextype'].strip().lower()
-
-            if 'title' in bib.keys():
-                d['title'] = self.format_title(bib['title'])
-
-            if 'author' in bib.keys():
-                d['authors'] = [self.format_author(e)
-                                for e in bib['author'].split('and')]
-            elif 'editor' in bib.keys():
-                d['authors'] = [self.format_author(e)
-                                for e in bib['editor'].split('and')]
-
-#      Seems no language on mathscinet
-#      if 'language' in bib.keys():
-#        d['language'] = bib['language'].lower().strip()
-
-            if 'doi' in bib.keys():
-                d['doi'] = bib['doi'].strip()
-
-            if 'isbn' in bib.keys():
-                d['isbn'] = self.clean_isbn(bib['isbn'])
-
-#      if 'isbn' in bib.keys() and 'mr' in bib.keys():
-#        self.cache_isbn_to_identifier(d['isbn'], d['mr'])
-
-            if 'publisher' in bib.keys():
-                d['publisher'] = self.format_text(bib['publisher'])
-
-            if 'series' in bib.keys():
-                d['series'] = self.format_text(bib['series'])
-                if 'volume' in bib.keys():
-                    d['series_index'] = bib['volume'].strip()
-
-            # Series may be in a note.
-            elif bib['bibtextype'] == 'book' and 'note' in bib.keys():
-                series, series_idx = self.format_series_from_note(bib['note'])
-                if series:
-                    d['series'] = series
-                    if series_idx:
-                        d['series_index'] = series_idx
-
-            if 'fjournal' in bib.keys():
-                d['journal'] = self.format_fjournal(bib['fjournal'])
-            elif 'journal' in bib.keys():
-                d['journal'] = self.format_text(bib['journal'])
-
-            if 'volume' in bib.keys():
-                d['volume'] = bib['volume'].strip()
-
-            if 'number' in bib.keys():
-                d['number'] = bib['number'].strip()
-
-            if 'year' in bib.keys():
-                year = self.format_year(bib['year'].strip())
-                if year: d['year'] = year
-
-            ans.append(d)
-
+        for entry in re.findall('<pre>(.*?)</pre>', rawdata, re.DOTALL):
+            for bib in parse_bibtex(entry):
+                ans.append(self.entry_from_bibtex(bib))
         return ans
 
+
+    def get_item(self, bibid):
+        params = format_query({self.idkey: bibid})
+        ans = get_matches(bibid)
+
+        if len(ans) > 0:
+            return ans[0]
+
+        return None
+
+
+    def get_abstract(self, bibid):
+        query_abstract = "http://www.ams.org/mathscinet/search/publdoc.html?pg1=MR&s1=%s" % bibid
+        raw = self.browser.open(query_abstract, timeout=self.timeout).read()
+        rawdata = raw.decode('utf-8', errors='replace').strip()
+        m = re.search('<div class="review">(.*?)</div>', rawdata, re.DOTALL)
+        if m:
+            abstract = m.group(1).strip()
+            L = re.findall("(.*?)<br\s*/>\s*&nbsp;\s*&nbsp;",
+                           abstract + '<br />&nbsp;&nbsp;', re.DOTALL)
+            Lpar = [self.format_abstract_paragraph(par.strip()) for par in L if len(par.strip()) > 0]
+            abstract = ('\n'.join(Lpar)).strip()
+
+            if len(abstract) > 0:
+                return abstract
+
+        return None
 
 
     def append_query_token(self, params, idx, field, value):
@@ -169,8 +124,7 @@ class Mathscinet(NetbibBase):
         params['co%d' % idx] = 'AND'
 
 
-
-    def format_query(self, d, title_all=False):
+    def format_query(self, d, lax=False):
         """Formats a query suitable to send to the arxiv API"""
         for k in d.keys():
             if not k in self.search_fields:
@@ -178,22 +132,22 @@ class Mathscinet(NetbibBase):
 
         params = {}
         idx = 1
-        if 'mr' in d.keys():
-            self.append_query_token(params, idx, 'MR', d['mr'])
+        if 'id' in d.keys():
+            self.append_query_token(params, idx, 'MR', d['id'])
 
         elif 'authors' in d.keys() or 'title' in d.keys():
             if 'title' in d.keys():
-                if title_all: KEY='ALLF'
+                if lax: KEY='ALLF'
                 else: KEY='TI'
 
-                self.append_query_token(params, idx, KEY, self.format_query_text(d['title']))
+                self.append_query_token(params, idx, KEY, self.clean_query(d['title']))
                 idx = idx + 1
 
             if 'authors' in d.keys():
                 words = [surname(a) for a in d['authors']]
                 max = min(len(words), 3)
                 for i in range(0,max):
-                    self.append_query_token(params, idx, 'ICN', self.format_query_text(words[i]))
+                    self.append_query_token(params, idx, 'ICN', self.clean_query(words[i]))
                     idx = idx + 1
 
         else:
@@ -206,23 +160,19 @@ class Mathscinet(NetbibBase):
 
 
 
-    def format_fjournal(self, fj):
 
-        txt = self.format_text(fj)
+    # Utility stuff
+    # ------------------------------ #
 
+    def format_journal(self, txt):
+        txt = super(Mathscinet, self).format_journal(txt)
         m = re.match("(.*)\.", txt, re.DOTALL)   # Kill what appears after the last dot.
         if m: txt = m.group(1).strip()
-
-        m = re.match("(.*?)\(", txt, re.DOTALL)   # Kill what appears after the first parenthesis.
-        if m: txt = m.group(1).strip()
-
         return txt
 
 
-
-    def format_MR(self, mr):
-        return mr.replace('MR', '').strip()
-
+    def format_id(self, bibid):
+        return bibid.replace('MR', '').strip()
 
 
     def format_series_from_note(self, note):
@@ -231,26 +181,6 @@ class Mathscinet(NetbibBase):
             return (m.group(1), m.group(3))
         else:
             return (None, None)
-
-
-
-    def get_abstract(self, mr):
-        query_abstract = "http://www.ams.org/mathscinet/search/publdoc.html?pg1=MR&s1=%s" % mr
-        raw = self.browser.open(query_abstract, timeout=self.timeout).read()
-        rawdata = raw.decode('utf-8', errors='replace').strip()
-        m = re.search('<div class="review">(.*?)</div>', rawdata, re.DOTALL)
-        if m:
-            abs = m.group(1).strip()
-            L = re.findall("(.*?)<br\s*/>\s*&nbsp;\s*&nbsp;", abs + '<br />&nbsp;&nbsp;', re.DOTALL)
-            Lpar = [self.format_abstract_paragraph(par.strip()) for par in L]
-            formated_abstract = ('\n'.join(Lpar)).strip()
-            if formated_abstract == "":
-                return None
-            else:
-                return formated_abstract
-        else:
-            return None
-
 
 
     def format_abstract_paragraph(self, par):
@@ -262,16 +192,3 @@ class Mathscinet(NetbibBase):
         par = re.sub('<script\s+type="math/tex">(.*?)</script>', '', par, re.DOTALL | re.MULTILINE)
 
         return '<p>%s</p>' % par
-
-
-
-    def clean_isbn(self, isbn):
-        return isbn.replace('-', '').strip()
-
-
-
-    def format_query_text(self, txt):
-        # The wildcard does not work inside "".
-        # txt = re.sub('[^\x00-\x7F]', '*', txt)
-        # But arxiv does not like non-ascii characters. So I strip accents.
-        return strip_accents(txt).strip()

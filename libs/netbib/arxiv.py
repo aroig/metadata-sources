@@ -46,7 +46,7 @@ class Arxiv(NetbibBase):
 
         self.query_maxresults = 100
 
-        self.search_fields = ['title', 'authors', 'arxiv']
+        self.search_fields = ['title', 'authors', 'id']
         self.idkey = 'arxiv'
 
         self.timeout = timeout
@@ -58,28 +58,10 @@ class Arxiv(NetbibBase):
 
 
 
-    def run(self):
-        # First formulate a query with the exact match for the title
-        # The maxresults in the query are different from the maxresults expected from the plugin.
-        params = self.format_query(self.query, self.query_maxresults, split_title = False)
-        id_query = ('isbn' in self.query.keys()) or ('arxiv' in self.query.keys())
+    # Internals
+    # ------------------------------ #
 
-        ans = self.query_arxiv(params)
-
-        # If no luck, let's try splitting the title by words.
-        if len(ans) == 0 and not id_query:
-            time.sleep(self.sleep_time)
-            params = self.format_query(self.query, self.query_maxresults, split_title = True)
-            ans = self.query_arxiv(params)
-
-        if len(ans) > 0:
-            self.ans = self.sort_and_trim(ans)
-        else:
-            self.ans = []
-
-
-
-    def query_arxiv(self, params):
+    def get_matches(self, params):
         at = "{http://www.w3.org/2005/Atom}"
         query_url = '%s?%s' % (self.arxiv_url, urlencode(params))
         raw = self.browser.open(query_url, timeout=self.timeout).read().strip()
@@ -90,12 +72,12 @@ class Arxiv(NetbibBase):
         ans = []
         for result in entries:
             d = {}
-            d['arxiv'] = self.format_arxiv_id(result.find(at+'id').text)
+            d['id'] = self.format_id(result.find(at+'id').text)
             d['title'] = self.format_title(result.find(at+'title').text)
             d['authors'] = [self.format_text(e.text) for e in result.findall(at+'author/'+at+'name')]
             d['subject'] = [self.format_text(e.get('term')) for e in result.findall(at+'category')]
             d['updated'] = self.format_text(result.find(at+'updated').text)
-            d['abstract'] = self.format_abstract(result.find(at+'summary').text)
+            d['abstract'] = self.format_text(result.find(at+'summary').text)
             d['updated'] = self.format_text(result.find(at+'updated').text)
             d['url'] = self.format_url(result.find(at+'link').get('href'))
 
@@ -104,31 +86,51 @@ class Arxiv(NetbibBase):
         return ans
 
 
+    def get_item(self, bibid):
+        params = self.format_query({self.idkey: bibid})
+        ans = get_matches(params)
 
-    def format_query(self, d, maxresults, split_title=False):
+        if len(ans) > 0:
+            return ans[0]
+
+        return None
+
+
+    def get_abstract(self, bibid):
+        ans = self.get_item(bibid)
+
+        if 'abstract' in ans:
+            return ans['abstract']
+
+        return None
+
+
+    def format_query(self, d, lax=False):
         """Formats a query suitable to send to the arxiv API"""
         for k in d.keys():
             if not k in self.search_fields:
                 raise ArxivError("Error in Arxiv. Don't understand keys")
 
-        if 'arxiv' in d.keys():
-            params = {'id_list': d['arxiv'], 'start': '0', 'max_results': '1'}
+        if 'id' in d.keys():
+            params = {'id_list': d['id'], 'start': '0', 'max_results': '1'}
             return params
 
         elif 'title' in d.keys() or 'authors' in d.keys():
             items = []
             if 'title' in d.keys():
-                if split_title:
+                if lax:
                     words = d['title'].split(' ')
-                    for b in words: items.append('ti:' + self.format_query_text(b))
+                    for b in words: items.append('ti:' + self.clean_query(b))
                 else:
-                    items.append('ti:' + ('"%s"' % self.format_query_text(d['title'])))
+                    items.append('ti:' + ('"%s"' % self.clean_query(d['title'])))
 
             if 'authors' in d.keys():
                 words = [surname(a) for a in d['authors']]
-                for b in words: items.append('au:' + self.format_query_text(b))
+                for b in words: items.append('au:' + self.clean_query(b))
 
-            params = {'search_query': " AND ".join(items), 'start': 0, 'max_results': str(maxresults)}
+            params = {'search_query': " AND ".join(items),
+                      'start': 0,
+                      'max_results': str(self.query_maxresults)}
             return params
 
         else:
@@ -136,21 +138,10 @@ class Arxiv(NetbibBase):
             return None
 
 
-    def format_url(self, url):
-        return url
 
+    # Utility stuff
+    # ------------------------------ #
 
-    def format_arxiv_id(self, url):
+    def format_id(self, url):
         m = re.match("http://arxiv.org/abs/(.*)", url)
         return m.group(1).strip()
-
-
-    def format_abstract(self, abs):
-        return self.format_text(abs)
-
-
-    def format_query_text(self, txt):
-        # The wildcard does not work inside "".
-        # txt = re.sub('[^\x00-\x7F]', '*', txt)
-        # But arxiv does not like non-ascii characters. So I strip accents.
-        return strip_accents(txt).strip()
