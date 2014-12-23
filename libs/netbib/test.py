@@ -45,10 +45,11 @@ def test():
 
     print("Arxiv")
     test_source(src=Arxiv(browser), query={'authors': ['Kontsevich']})
-    test_source(src=Arxiv(browser), query={'arxiv': "1412.7127v1"})
+    test_source(src=Arxiv(browser), query={'id': "1412.7127v1"})
 
     print("Zentralblatt")
     test_source(src = Zentralblatt(browser), query={'authors': ['Kontsevich']})
+    test_source(src = Zentralblatt(browser), query={'id': '0129.15601'})
 
     print("Mathscinet")
     test_source(src = Mathscinet(browser), query={'authors': ['Kontsevich']})

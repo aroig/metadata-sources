@@ -91,8 +91,8 @@ class Mathscinet(NetbibBase):
 
 
     def get_item(self, bibid):
-        params = format_query({self.idkey: bibid})
-        ans = get_matches(bibid)
+        params = self.format_query({'id': bibid})
+        ans = self.get_matches(bibid)
 
         if len(ans) > 0:
             return ans[0]
@@ -128,7 +128,7 @@ class Mathscinet(NetbibBase):
         """Formats a query suitable to send to the arxiv API"""
         for k in d.keys():
             if not k in self.search_fields:
-                raise MathscinetError("Error in Mathscinet. Don't understand keys")
+                raise MathscinetError("Error in Mathscinet. Don't understand key: %s" % k)
 
         params = {}
         idx = 1
@@ -191,4 +191,4 @@ class Mathscinet(NetbibBase):
         par = re.sub('<span\s+class="MathTeX">(.*?)</span>', '\g<1>', par, re.DOTALL | re.MULTILINE)
         par = re.sub('<script\s+type="math/tex">(.*?)</script>', '', par, re.DOTALL | re.MULTILINE)
 
-        return '<p>%s</p>' % par
+        return '<p>%s</p>' % par.strip()

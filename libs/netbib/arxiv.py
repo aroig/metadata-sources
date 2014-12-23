@@ -87,8 +87,8 @@ class Arxiv(NetbibBase):
 
 
     def get_item(self, bibid):
-        params = self.format_query({self.idkey: bibid})
-        ans = get_matches(params)
+        params = self.format_query({'id': bibid})
+        ans = self.get_matches(params)
 
         if len(ans) > 0:
             return ans[0]
@@ -109,7 +109,7 @@ class Arxiv(NetbibBase):
         """Formats a query suitable to send to the arxiv API"""
         for k in d.keys():
             if not k in self.search_fields:
-                raise ArxivError("Error in Arxiv. Don't understand keys")
+                raise ArxivError("Error in Arxiv. Don't understand key: %s" % k)
 
         if 'id' in d.keys():
             params = {'id_list': d['id'], 'start': '0', 'max_results': '1'}

@@ -85,14 +85,15 @@ class Zentralblatt(NetbibBase):
 
     def get_abstract(self, bibid):
         """Returns the answer to a query"""
-        params = format_query({self.idkey: bibid})
+        params = self.format_query({'id': bibid})
         query = '%s?%s' % (self.url_query, urlencode(params))
+        raw = self.browser.open(query, timeout=self.timeout).read()
         rawdata=raw.decode('utf-8', errors='replace').strip()
         m = re.search('<div class="abstract">(.*?)</div>', rawdata, re.DOTALL)
         if m:
             abstract = m.group(1).strip()
             L = re.findall("(.*?)\n\s*?\n", abstract + "\n\n", re.DOTALL | re.MULTILINE)
-            Lpar = [self.format_paragraph(par.strip()) for par in L if len(par.strip()) > 0]
+            Lpar = [self.format_abstract_paragraph(par.strip()) for par in L if len(par.strip()) > 0]
             abstract = ('\n'.join(Lpar)).strip()
 
             if len(abstract) > 0:
@@ -119,7 +120,7 @@ class Zentralblatt(NetbibBase):
         """Formats a query suitable to send to Zentralblatt API"""
         for k in d.keys():
             if not k in self.search_fields:
-                raise ZentralblattError("Error in Zentralblatt. Don't understand keys")
+                raise ZentralblattError("Error in Zentralblatt. Don't understand key: %s" % k)
 
         items = []
         if 'id' in d.keys():
@@ -140,3 +141,12 @@ class Zentralblatt(NetbibBase):
 
         params = {'q': ' '.join(items)}
         return params
+
+
+    # Utility stuff
+    # ------------------------------ #
+
+    def format_abstract_paragraph(self, par):
+        par = re.sub('\s+', ' ', par)
+
+        return '<p>%s</p>' % par.strip()

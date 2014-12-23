@@ -83,7 +83,7 @@ class NetbibBase(threading.Thread):
 
         # check if querying by id
         if 'id' in self.query:
-            item = self.get_item(self.query[self.idkey])
+            item = self.get_item(self.query['id'])
             if item:
                 # get abstract
                 if not 'abstract' in item:
