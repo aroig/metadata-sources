@@ -37,8 +37,8 @@ class Arxiv(MySource):
     minimum_calibre_version = (0,8,0)
 
     capabilities = frozenset(['identify'])
-    touched_fields = frozenset(['title', 'authors', 'identifier:arxiv',
-          'comments', 'publisher', 'pubdate', 'tags'])
+    touched_fields = frozenset(['title', 'authors', 'identifier:arxiv', 'comments',
+                                'publisher', 'pubdate', 'tags'])
 
     options = MySource.options + \
         [Option("publisher", "string", "arxiv.org",

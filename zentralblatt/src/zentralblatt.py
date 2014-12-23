@@ -38,8 +38,8 @@ class Zentralblatt(MySource):
     minimum_calibre_version = (0,8,0)
 
     capabilities = frozenset(['identify'])
-    touched_fields = frozenset(['title', 'authors', 'identifiers', 'languages',
-          'series', 'series_index', 'pubdate'])
+    touched_fields = frozenset(['title', 'authors', 'identifier:zbl', 'comments', 'publisher',
+                                'pubdate', 'languages', 'series', 'series_index', 'tags'])
 
     # Plugin Options
     has_html_comments = True
@@ -61,13 +61,6 @@ class Zentralblatt(MySource):
             return ("zbl", zbl, url)
         else:
             return None
-
-
-    def format_abstract(self, abs):
-        L = re.findall("(.*?)\n\s*?\n", abs+"\n\n", re.DOTALL | re.MULTILINE)
-        Lpar = [self.format_paragraph(p) for p in L if p.strip() != ""]
-
-        return '<h3>%s</h3>\n%s' % (self.abstract_title, '\n'.join(Lpar))
 
 
 
