@@ -28,12 +28,18 @@ if __name__ == '__main__':
          title_test, authors_test)
 
     tests_list = [
+        ({'identifiers': {"zbl" : "0129.15601"}},
+         [title_test("The stable homotopy of the classical groups"),
+          authors_test(['Raoul Bott'])]),
+
         ({'title': "Superconnections, Thom classes", 'authors':['Mathai', 'Daniel Quillen']},
          [title_test("Superconnections, Thom classes, and equivariant differential forms"),
           authors_test(['Varghese Mathai', 'Daniel Quillen'])]),
+
         ({'title': "sur le nombre des points rationnels", 'authors':['serre']},
          [title_test("Sur le nombre des points rationnels d'une courbe algébrique sur un corps fini"),
-          authors_test(['Jean-Pierre Serre'])])
+          authors_test(['Jean-Pierre Serre'])]),
+
         ]
 
     test_identify_plugin("Zentralblatt", tests_list)

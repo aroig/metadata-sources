@@ -92,6 +92,10 @@ class Zentralblatt(NetbibBase):
         m = re.search('<div class="abstract">(.*?)</div>', rawdata, re.DOTALL)
         if m:
             abstract = m.group(1).strip()
+
+            # The abstract section might contain crap
+            if '<div class="scan">' in abstract: return None
+
             L = re.findall("(.*?)\n\s*?\n", abstract + "\n\n", re.DOTALL | re.MULTILINE)
             Lpar = [self.format_abstract_paragraph(par.strip()) for par in L if len(par.strip()) > 0]
             abstract = ('\n'.join(Lpar)).strip()
