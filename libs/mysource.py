@@ -25,12 +25,15 @@ import time
 import re
 
 from .netbib.utils import metadata_distance
+from .tags import msc_tags, arxiv_tags
 
 from calibre.utils.browser import Browser
 from calibre.ebooks.metadata.sources.base import Source, Option
 from calibre.ebooks.metadata.book.base import Metadata
 from calibre.utils.date import parse_date
 from calibre.ebooks.metadata import author_to_author_sort
+
+from calibre.ebooks.metadata import check_isbn
 
 
 class MySource(Source):
@@ -76,13 +79,7 @@ class MySource(Source):
             for i in range(0,len(md.ans)):
                 mi = self.data2mi(md.ans[i])
                 mi.source_relevance = i                # Less means more relevant.
-
-                title = mi.title
-                tags = list(mi.tags)
-                self.clean_downloaded_metadata(mi)
-                mi.tags = tags
-                if not self.prefs['clean_title']:      # Keep raw title
-                    mi.title = title.strip()
+                mi.isbn = check_isbn(mi.isbn)
 
                 result_queue.put(mi)
         return None
@@ -129,6 +126,14 @@ class MySource(Source):
         if 'journal' in item.keys():
             mi.series = item['journal']
             mi.series_index = self.format_series_index(item.get('volume'), item.get('number'))
+
+        if 'subject' in item.keys():
+            tags = set([])
+            for s in item['subject']:
+                tags.update(msc_tags(s))
+                tags.update(arxiv_tags(s))
+
+            mi.tags = list(sorted(tags))
 
         return mi
 

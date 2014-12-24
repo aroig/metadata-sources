@@ -23,7 +23,6 @@ import time
 import re
 
 from .mysource import MySource
-from .tags import arxiv_tags
 from .netbib.arxiv import Arxiv as ArxivWorker
 
 from calibre.ebooks.metadata.sources.base import Option
@@ -42,12 +41,6 @@ class Arxiv(MySource):
     touched_fields = frozenset(['identifier:arxiv', 'title', 'authors', 'comments',
                                 'publisher', 'pubdate', 'tags'])
 
-    options = MySource.options + \
-        [Option("publisher", "string", "arxiv.org",
-                _("Publisher"),
-                _("Sets the publisher to this value")),
-         ]
-
     # Plugin Options
     has_html_comments = True
     supports_gzip_transfer_encoding = False
@@ -63,18 +56,7 @@ class Arxiv(MySource):
 
     def data2mi(self, item):
         mi = super(Arxiv, self).data2mi(item)
-
-        publisher = self.prefs['publisher'].strip()
-        if publisher != "":
-            mi.publisher = publisher
-
-        if 'subject' in item.keys():
-            tags = set([])
-            for s in item['subject']:
-                tags.update(arxiv_tags(s))
-
-            mi.set('tags', tags)
-
+        mi.publisher = "arxiv.org"
         return mi
 
 

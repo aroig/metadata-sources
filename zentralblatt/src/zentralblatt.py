@@ -23,7 +23,6 @@ import time
 import re
 
 from .mysource import MySource
-from .tags import msc_tags
 from .netbib import Zentralblatt as ZentralblattWorker
 
 from calibre.ebooks.metadata.sources.base import Option
@@ -64,17 +63,6 @@ class Zentralblatt(MySource):
         else:
             return None
 
-
-    def data2mi(self, item):
-        mi = super(Zentralblatt, self).data2mi(item)
-
-        if 'subject' in item.keys():
-            tags = set([])
-            for s in item['subject']:
-                tags.update(msc_tags(s))
-            mi.set('tags', tags)
-
-        return mi
 
 
 
