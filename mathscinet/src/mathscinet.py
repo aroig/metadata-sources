@@ -34,8 +34,8 @@ class Mathscinet(MySource):
     description             = _('Downloads metadata from Mathscinet')
     author                  = 'Abdó Roig-Maranges'
     supported_platforms     = ['windows', 'osx', 'linux']
-    version                 = (1,2,0)
-    minimum_calibre_version = (0,8,0)
+    version                 = (1,3,0)
+    minimum_calibre_version = (1,0,0)
 
     capabilities = frozenset(['identify'])
     touched_fields = frozenset(['title', 'authors', 'identifier:mr', 'comments', 'publisher',

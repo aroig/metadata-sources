@@ -36,7 +36,7 @@ class Zentralblatt(MySource):
     author                  = 'Abdó Roig-Maranges'
     supported_platforms     = ['windows', 'osx', 'linux']
     version                 = (1,3,0)
-    minimum_calibre_version = (0,8,0)
+    minimum_calibre_version = (1,0,0)
 
     capabilities = frozenset(['identify'])
     touched_fields = frozenset(['title', 'authors', 'identifier:zbl', 'comments', 'publisher',

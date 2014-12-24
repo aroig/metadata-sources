@@ -29,13 +29,19 @@ if __name__ == '__main__':
          title_test, authors_test)
 
     tests_list = [
+        ({'identifiers': {'arxiv': "1412.7127v1"}},
+         [title_test("Surface Operators"),
+          authors_test(["Sergei Gukov"])]),
+
         ({'title': "The Cobordism Category and Waldhausen's K-theory",
           'authors': ['Marcel Bökstedt', 'Ib Madsen']},
          [title_test("The Cobordism Category and Waldhausen's K-theory", exact=True)]),
+
         ({'title': "knots fivebranes", 'authors':['Witten']},
          [title_test("Fivebranes and Knots", exact=True),
           authors_test(['Edward Witten'])]
          ),
+
         ({'title': "Fivebranes and knots", 'authors':['Witten']},
          [title_test("Fivebranes and Knots", exact=True),
           authors_test(['Edward Witten'])])

@@ -17,12 +17,14 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import (unicode_literals, division)
+
 import time
 import re
 
 from .mysource import MySource
-from .netbib.arxiv import Arxiv as ArxivWorker
 from .tags import arxiv_tags
+from .netbib.arxiv import Arxiv as ArxivWorker
 
 from calibre.ebooks.metadata.sources.base import Option
 from calibre.ebooks.metadata.book.base import Metadata
@@ -33,8 +35,8 @@ class Arxiv(MySource):
     description             = _('Downloads metadata from arxiv.org')
     author                  = 'Abdó Roig-Maranges'
     supported_platforms     = ['windows', 'osx', 'linux']
-    version                 = (1,2,0)
-    minimum_calibre_version = (0,8,0)
+    version                 = (1,3,0)
+    minimum_calibre_version = (1,0,0)
 
     capabilities = frozenset(['identify'])
     touched_fields = frozenset(['title', 'authors', 'identifier:arxiv', 'comments',
@@ -47,8 +49,8 @@ class Arxiv(MySource):
          ]
 
     # Plugin Options
-    supports_gzip_transfer_encoding = False
     has_html_comments = True
+    supports_gzip_transfer_encoding = False
 
     # My Options
     idkey = 'arxiv'
@@ -57,16 +59,6 @@ class Arxiv(MySource):
     worker_class = ArxivWorker
     abstract_title = "Abstract:"
 
-
-    def get_book_url(self, identifiers):
-        """Produces an url for the arxiv identifier."""
-
-        if 'arxiv' in identifiers.keys():
-            arxiv = identifiers['arxiv']
-            url = "http://arxiv.org/abs/%s" % arxiv
-            return ("arxiv", arxiv, url)
-        else:
-            return None
 
 
     def data2mi(self, item):
