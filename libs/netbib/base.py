@@ -178,6 +178,7 @@ class NetbibBase(threading.Thread):
         txt = self.format_text(txt)
         txt = re.sub("{([^{}]*?)}", "\g<1>", txt, re.DOTALL)  # Removes more {}
         txt = re.sub("\(.*$", "", txt, re.DOTALL)             # Kill after first parenthesis.
+        txt = re.sub("\.[^.]*$", "", txt, re.DOTALL)          # Kill after last dot.
         return txt.strip()
 
 
@@ -271,7 +272,7 @@ class NetbibBase(threading.Thread):
         if 'fjournal' in bib.keys():
             d['journal'] = self.format_journal(bib['fjournal'])
         elif 'journal' in bib.keys():
-            d['journal'] = self.format_text(bib['journal'])
+            d['journal'] = self.format_journal(bib['journal'])
 
         if 'volume' in bib.keys():
             d['volume'] = self.format_number(bib['volume'])
