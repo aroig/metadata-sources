@@ -60,8 +60,13 @@ class Mathscinet(NetbibBase):
     def entry_from_bibtex(self, bib):
         d = super(Mathscinet, self).entry_from_bibtex(bib)
 
-        if 'bibtexkey' in bib.keys():
+        if 'mrnumber' in bib.keys():
+            d['id'] = self.format_id(bib['mrnumber'])
+        elif 'bibtexkey' in bib.keys():
             d['id'] = self.format_id(bib['bibtexkey'])
+
+        if 'mrclass' in bib.keys():
+            d['subject'] = self.format_subject(bib['mrclass'])
 
         # Series may be in a note.
         if not 'series' in d.keys() and bib['bibtextype'] == 'book' and 'note' in bib.keys():
@@ -172,7 +177,9 @@ class Mathscinet(NetbibBase):
 
 
     def format_id(self, bibid):
-        return bibid.replace('MR', '').strip()
+        txt = bibid.replace('MR', '').strip()
+        txt = re.sub('\(.*$', '', txt).strip()
+        return txt
 
 
     def format_series_from_note(self, note):

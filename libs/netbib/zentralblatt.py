@@ -65,7 +65,7 @@ class Zentralblatt(NetbibBase):
             d['id'] = self.format_id(bib['zbl'])
 
         if 'msc2010' in bib.keys():
-            d['subject'] = [s.strip() for s in bib['msc2010'].split(' ')]
+            d['subject'] = self.format_subject(bib['msc2010'])
 
         return d
 

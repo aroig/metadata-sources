@@ -218,6 +218,11 @@ class NetbibBase(threading.Thread):
         return self.format_text(bibid)
 
 
+    def format_subject(self, subj):
+        """Extract a list of AMS subject classification keys"""
+        return re.findall('\d\d[A-Z]\d\d|\d\d[A-Z]|\d\d', subj)
+
+
     def clean_query(self, txt):
         """Strip accents and such, to make a query"""
         return strip_accents(txt).strip()
