@@ -39,8 +39,9 @@ class Zentralblatt(MySource):
     minimum_calibre_version = (1,0,0)
 
     capabilities = frozenset(['identify'])
-    touched_fields = frozenset(['title', 'authors', 'identifier:zbl', 'comments', 'publisher',
-                                'pubdate', 'languages', 'series', 'series_index', 'tags'])
+    touched_fields = frozenset(['identifier:zbl', 'identifier:doi', 'identifier:isbn',
+                                'title', 'authors', 'comments', 'publisher', 'pubdate',
+                                'languages', 'series', 'series_index', 'tags'])
 
     # Plugin Options
     has_html_comments = True

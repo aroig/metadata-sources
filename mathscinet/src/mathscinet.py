@@ -38,8 +38,9 @@ class Mathscinet(MySource):
     minimum_calibre_version = (1,0,0)
 
     capabilities = frozenset(['identify'])
-    touched_fields = frozenset(['title', 'authors', 'identifier:mr', 'comments', 'publisher',
-                                'languages', 'pubdate', 'series', 'series_index', 'tags'])
+    touched_fields = frozenset(['identifier:mr', 'identifier:doi', 'identifier:isbn',
+                                'title', 'authors', 'comments', 'publisher', 'languages',
+                                'pubdate', 'series', 'series_index', 'tags'])
 
 
     # Plugin Options

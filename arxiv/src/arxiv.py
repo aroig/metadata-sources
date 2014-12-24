@@ -39,7 +39,7 @@ class Arxiv(MySource):
     minimum_calibre_version = (1,0,0)
 
     capabilities = frozenset(['identify'])
-    touched_fields = frozenset(['title', 'authors', 'identifier:arxiv', 'comments',
+    touched_fields = frozenset(['identifier:arxiv', 'title', 'authors', 'comments',
                                 'publisher', 'pubdate', 'tags'])
 
     options = MySource.options + \
