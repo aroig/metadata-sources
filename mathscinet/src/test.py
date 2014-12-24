@@ -29,12 +29,18 @@ if __name__ == '__main__':
          title_test, authors_test)
 
     tests_list = [
+        ({'identifiers': {"mr" : "1053945"}},
+         [title_test(u"Decomposition theorem for proper Kähler morphisms"),
+          authors_test(['Morihiko Saito'])]),
+
         ({'title': "Arithmetic and Geometry", 'authors':['Artin']},
          [title_test("Arithmetic And Geometry. Vol"),
           authors_test(['Michael Artin', 'John Tate'])]),
+
         ({'title': "Superconnections, Thom classes", 'authors':['Mathai', 'Daniel Quillen']},
          [title_test("Superconnections, Thom classes, and equivariant differential forms"),
           authors_test(['Varghese Mathai', 'Daniel Quillen'])]),
+
         ({'title': "sur le nombre des points rationnels", 'authors':['serre']},
          [title_test("Sur le nombre des points rationnels d'une courbe algébrique sur un corps fini"),
           authors_test(['Jean-Pierre Serre'])])

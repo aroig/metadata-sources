@@ -92,7 +92,7 @@ class Mathscinet(NetbibBase):
 
     def get_item(self, bibid):
         params = self.format_query({'id': bibid})
-        ans = self.get_matches(bibid)
+        ans = self.get_matches(params)
 
         if len(ans) > 0:
             return ans[0]
