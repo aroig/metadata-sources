@@ -333,13 +333,19 @@ _msc_tags = {
     '19K':                 ['operator algebras'],
 
     # Groups
-    '20':                  ['maths', 'groups'],
+    '20':                  ['maths'],
+
+    '20B':                 ['group theory'],
 
     '20C':                 ['representation theory'],
 
+    '20D':                 ['group theory', 'finite groups'],
+
+    '20G':                 ['algebraic groups'],
+
     # Lie groups
-    '20C':                 ['topological groups'],
-    '20D':                 ['topological groups'],
+    '22C':                 ['topological groups'],
+    '22D':                 ['topological groups'],
     '22E':                 ['lie groups'],
 
 
@@ -389,9 +395,23 @@ _msc_tags = {
     '32W20':               ['monge-ampere'],
     '32W30':               ['heat flow'],
 
+    # ODE's
     '34':                  ['maths', 'analysis', 'ode'],
 
+    # PDE's
     '35':                  ['maths', 'analysis', 'pde'],
+
+    '35F20':               ['nonlinear'],
+    '35F50':               ['nonlinear'],
+
+    '35G20':               ['nonlinear'],
+    '35G50':               ['nonlinear'],
+
+    '35Q30':               ['navier-stokes'],
+    '35Q51':               ['solitons'],
+    '35Q53':               ['kdv'],
+    '35Q65':               ['landau-ginzburg'],
+
 
     '37':                  ['maths', 'dynamical systems'],
 
@@ -497,8 +517,13 @@ _msc_tags = {
 
     # Manifolds
     '57':                  ['maths', 'topology'],
+
+    '57M':                 ['geometric topology'],
+
     '57N20':               ['infinite dimensional'],
-    '57Q':                 ['PL topology'],
+
+    '57Q':                 ['pl-topology'],
+
     '57R':                 ['differential topology', 'manifolds'],
 
     # Global geometry and analysis
