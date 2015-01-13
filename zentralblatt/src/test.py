@@ -28,6 +28,10 @@ if __name__ == '__main__':
          title_test, authors_test)
 
     tests_list = [
+        ({'identifiers': {"zbl" : "1140.18005"}},
+         [title_test("Moduli of objects in dg-categories"),
+          authors_test(['Bertrand Toën', 'Michel Vaquié'])]),
+
         ({'identifiers': {"zbl" : "0129.15601"}},
          [title_test("The stable homotopy of the classical groups"),
           authors_test(['Raoul Bott'])]),

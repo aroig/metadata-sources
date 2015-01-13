@@ -157,8 +157,9 @@ class NetbibBase(threading.Thread):
 
 
     def format_author(self, au):
+        au = self.format_text(au)
         au = re.sub("{([^{}]*?)}", "\g<1>", au, re.DOTALL)   # Removes more {}
-        L = self.format_text(au).split(',')
+        L = au.split(',')
         if len(L) != 2: return au
         else:           return L[1].strip() + " " + L[0].strip()
 
@@ -251,10 +252,10 @@ class NetbibBase(threading.Thread):
 
         if 'author' in bib.keys():
             d['authors'] = [self.format_author(e)
-                            for e in bib['author'].split('and')]
+                            for e in bib['author'].split(' and ')]
         elif 'editor' in bib.keys():
             d['authors'] = [self.format_author(e)
-                            for e in bib['editor'].split('and')]
+                            for e in bib['editor'].split(' and ')]
 
         if 'language' in bib.keys():
             lang =  self.format_language(bib['language'])
